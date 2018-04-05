@@ -6,7 +6,7 @@
 #include <linux/types.h>
 #include <linux/fs.h>
 #include <linux/proc_fs.h>
-#include <asm/uaccess.h>
+//#include <asm/uaccess.h>
 
 #define MAJOR_NUMBER 61
 
@@ -32,24 +32,61 @@ int onebyte_open(struct inode *inode, struct file *filep)
     return 0;
 }
 
-int onebyte_release(struct inode *inode, struct file *filep);
+int onebyte_release(struct inode *inode, struct file *filep)
 {
     return 0;
 }
 
-ssize_t onebyte_read(struct file *filep, char *buf, size_t count, loff_t *f_pos); 
+ssize_t onebyte_read(struct file *filep, char *buf, size_t count, loff_t *f_pos)
 {
     return 0;
 }
 
-ssize_t onebyte_write(struct file *filep, const char *buf, size_t count, loff_t *f_pos);
+ssize_t onebyte_write(struct file *filep, const char *buf, size_t count, loff_t *f_pos)
 {
     return 0;
 }
 
-static void onebyte_exit(void);
+static int onebyte_init(void)
 {
-    return;
+    int result; 
+    // register the device
+    result = register_chrdev(MAJOR_NUMBER, "onebyte", &onebyte_fops);
+    if (result < 0){
+        return result;
+    }
+
+    // allocate one byte of memory for storage
+    // kmalloc is just like malloc, the second parameter is
+    // the type of memory to be allocated. 
+    // To release the memory allocated by kmalloc, use kfree. 
+
+    onebyte_data = kmalloc(sizeof(char), GFP_KERNEL);
+    if (!onebyte_data){
+        onebyte_exit();
+        // cannot allocate memory
+        // return no memory error, negative signifies a failure
+        return -ENOMEM;
+    }
+
+    // initialise the value to be X 
+    *onebyte_data = 'X';
+    printk(KERN_ALERT "This is a onebyte device module\n");
+
+    return 0;
+}
+
+static void onebyte_exit(void)
+{
+    // if the pointer is pointing to something
+    if (onebyte_data){
+        // free the memory and assign the pointer to NULL
+        kfree(onebyte_data);
+        onebyte_data = NULL;
+    }
+    // unregister the device
+    unregister_chrdev(MAJOR_NUMBER, "onebyte");
+    printk(KERN_ALERT "Onebyte device module is unloaded\n");
 }
 
 MODULE_LICENSE("GPL");
