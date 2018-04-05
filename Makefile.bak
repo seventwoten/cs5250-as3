@@ -1,4 +1,4 @@
-TARGET_MODULE = oneb
+TARGET_MODULE = hello
 BUILDSYSTEM_DIR = /lib/modules/$(shell uname -r)/build
 
 obj-m = $(TARGET_MODULE).o
