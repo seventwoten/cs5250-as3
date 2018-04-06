@@ -4,9 +4,12 @@
 
 MODULE_LICENSE("GPL");
 
+static char *who;
+module_param(who, charp, 0);
+
 static int hello_init(void)
 {
-    printk(KERN_ALERT "Hello, world\n");
+    printk(KERN_ALERT "Hello, %s\n", who);
     return 0;
 }
 
