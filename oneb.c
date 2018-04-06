@@ -6,7 +6,7 @@
 #include <linux/types.h>
 #include <linux/fs.h>
 #include <linux/proc_fs.h>
-//#include <asm/uaccess.h>
+#include <linux/uaccess.h>
 
 #define MAJOR_NUMBER 61
 
@@ -39,11 +39,31 @@ int onebyte_release(struct inode *inode, struct file *filep)
 
 ssize_t onebyte_read(struct file *filep, char *buf, size_t count, loff_t *f_pos)
 {
+    // if the device has been read before, return 0
+    if (*f_pos > 0)
+        return 0;
+
+    // copy byte to user space
+    if (copy_to_user(buf, onebyte_data, 1) != 0)
+        return -EFAULT;
+
+    else
+    {
+        (*f_pos)++;
+        return 1;
+    }
+
     return 0;
 }
 
 ssize_t onebyte_write(struct file *filep, const char *buf, size_t count, loff_t *f_pos)
 {
+    // copy byte from user
+    if(count <= 1 && copy_from_user(onebyte_data, buf, count) == 0)
+        return count;
+    else
+        return -EFAULT;
+
     return 0;
 }
 
