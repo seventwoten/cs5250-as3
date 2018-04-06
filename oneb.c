@@ -61,10 +61,13 @@ ssize_t onebyte_write(struct file *filep, const char *buf, size_t count, loff_t 
     // copy byte from user
     if(count <= 1 && copy_from_user(onebyte_data, buf, count) == 0)
         return count;
-    else
+
+    // if buf is too long, copy just the first byte
+    else if (copy_from_user(onebyte_data, buf, 1) == 0)
         return -ENOSPC;
 
-    return 0;
+    else
+        return -EFAULT;
 }
 
 static int onebyte_init(void)
